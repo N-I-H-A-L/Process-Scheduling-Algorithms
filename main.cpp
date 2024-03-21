@@ -2,20 +2,33 @@
 
 using namespace std;
 
+class Process{
+    public: 
+        string name;
+        int arrival_time;
+        int service_time;
+};
+
 /**Global Variables*/
 const string ALGORITHMS[1] = {"FCFS"};
-vector<tuple<string, int, int>> PROCESSES;
+vector<Process> PROCESSES;
 vector<string> TIMELINE;
 
 void printProcesses(){
     for(int i = 0; i<PROCESSES.size(); i++){
-        tuple<string, int, int> process = PROCESSES[i];
-        cout<<get<0>(process)<<" "<<get<1>(process)<<" "<<get<2>(process)<<endl;
+        Process process = PROCESSES[i];
+        cout<<process.name<<" "<<process.arrival_time<<" "<<process.service_time<<endl;
     }
 }
 
+bool sortByArrivalTime(Process& a, const Process& b){
+    return a.arrival_time < b.arrival_time;
+}
+
 void firstComeFirstServe(){
-    printProcesses();
+    //Sorting the processes on the basis of Arrival Time so that processes arriving earlier should be processed earlier.
+    sort(PROCESSES.begin(), PROCESSES.end(), sortByArrivalTime);
+
 }
 
 void printTimeline(){
@@ -30,16 +43,23 @@ void inputProcesses(){
     cout<<"Provide details about processes."<<endl;
     cout<<"Format: Process_Name Arrival_Time Service_Time"<<endl;
     cout<<"Press 0 to exit."<<endl;
+    
     while(1){
         string process_name;
         int arrival_time, service_time;
         cin>>process_name;
         if(process_name=="0") break;
-        tuple<string, int, int> process;
+
+        Process process;
         cin>>arrival_time>>service_time;
-        process = make_tuple(process_name, arrival_time, service_time);
+
+        process.name = process_name;
+        process.arrival_time = arrival_time;
+        process.service_time = service_time;
         PROCESSES.push_back(process);
     }
+
+    TIMELINE.resize(PROCESSES.size());
 }
 
 int main(){
