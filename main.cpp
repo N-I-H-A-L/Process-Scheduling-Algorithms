@@ -182,8 +182,26 @@ void shortestRemainingTimeNext(){
         int service_time = get<2>(pq.top());
         pq.pop();
 
+        ////Execute process for 1 unit time
+        service_time -= 1;
+        time += 1;
+        for(int i = 0; i<getCount(); i++){
+            if(i==process_idx) TIMELINE[i] += "|*";
+            else TIMELINE[i] += "| ";
+        }
 
+        //If burst time is left, add the process again to pq.
+        if(service_time>0) pq.push({process, process_idx, service_time});
+        else{
+            //Else the process has been executed
+            setFinishTime(process_idx, time);
+            setTurnaroundTime(process_idx, process.arrival_time, time);
+            setNormalizedTurnaroundTime(process_idx, process.service_time);
+            executed++;
+        }
     }
+    
+    fillWatitingTime();
 }
 
 void shortestJobNext(){
@@ -264,6 +282,7 @@ void firstComeFirstServe(){
         setTurnaroundTime(i, curr.arrival_time, time);
         setNormalizedTurnaroundTime(i, curr.service_time);
     }
+
     fillWatitingTime();
 }
 
