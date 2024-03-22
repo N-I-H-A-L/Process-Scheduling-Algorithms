@@ -11,7 +11,7 @@ class Process{
 };
 
 //----------------------------------Global Variables----------------------------------
-const string ALGORITHMS[2] = {"FCFS", "SJN-"};
+const string ALGORITHMS[5] = {"FCFS", "SJN-", "SRTN"};
 int ALGORITHM = 0;
 vector<Process> PROCESSES;
 vector<string> TIMELINE;
@@ -136,7 +136,7 @@ bool sortByArrivalTime(const Process& a, const Process& b){
     return a.arrival_time < b.arrival_time;
 }
 
-class SortByServiceTime{
+class SortByServiceTimeSJN{
     public:
         bool operator()(pair<Process, int> p1, pair<Process, int> p2){
             //If service time is different, sort on the basis of lesser service time.
@@ -146,11 +146,50 @@ class SortByServiceTime{
         }
 };
 
+class SortByServiceTimeSRTN{
+    public:
+        bool operator()(tuple<Process, int, int> t1, tuple<Process, int, int> t2){
+            if(get<2>(t1) != get<2>(t2)) return get<2>(t1) > get<2>(t2);
+            else return get<0>(t1).arrival_time > get<0>(t2).arrival_time;
+        }
+};
+
 //----------------------------------Algorithms----------------------------------
+void shortestRemainingTimeNext(){
+    int time = 0, executed = 0;
+    vector<bool> inserted(getCount());
+    priority_queue<tuple<Process, int, int>, vector<tuple<Process, int, int>>, SortByServiceTimeSRTN> pq; 
+    while(executed<getCount()){
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in pq, insert it.
+            if(curr.arrival_time<=time && !inserted[i]){
+                pq.push(make_tuple(curr, i, curr.service_time));
+                inserted[i] = true;
+            }
+        }
+
+        if(pq.empty()){
+            time++;
+            for(int j = 0; j<getCount(); j++){
+                TIMELINE[j] += "| ";
+            }
+            continue;
+        }
+
+        Process process = get<0>(pq.top());
+        int process_idx = get<1>(pq.top());
+        int service_time = get<2>(pq.top());
+        pq.pop();
+
+
+    }
+}
+
 void shortestJobNext(){
     int time = 0, executed = 0;
     vector<bool> inserted(getCount());
-    priority_queue<pair<Process, int>, vector<pair<Process, int>>, SortByServiceTime> pq; 
+    priority_queue<pair<Process, int>, vector<pair<Process, int>>, SortByServiceTimeSJN> pq; 
     while(executed<getCount()){
         for(int i = 0; i<getCount(); i++){
             Process curr = getProcess(i);
@@ -318,9 +357,8 @@ void printStats(){
 }
 
 //----------------------------------Input Handlers----------------------------------
-
-void algorithmHandler(int algorithm_idx, int operation){
-    ALGORITHM = algorithm_idx;
+void algorithmHandler(int algorithm, int operation){
+    ALGORITHM = algorithm-1;
     if(operation==1) printTimeline();
     else printStats();
 }
@@ -363,16 +401,21 @@ int main(){
     cout<<"Choose an algorithm: "<<endl;
     cout<<"1. FCFS"<<endl;
     cout<<"2. Shortest Job Next"<<endl;
+    cout<<"3. Shortest Remaining Time Next"<<endl;
     cin>>algorithm;
 
     switch(algorithm){
         case 1:
             firstComeFirstServe();
-            algorithmHandler(0, operation);
+            algorithmHandler(1, operation);
             break;
         case 2:
             shortestJobNext();
-            algorithmHandler(1, operation);
+            algorithmHandler(2, operation);
+            break;
+        case 3:
+            shortestRemainingTimeNext();
+            algorithmHandler(3, operation);
             break;
     }
 
