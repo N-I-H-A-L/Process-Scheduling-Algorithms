@@ -16,7 +16,7 @@ vector<Process> PROCESSES;
 vector<string> TIMELINE;
 vector<int> FINISH_TIME;
 vector<float> TURNAROUND_TIME;
-vector<int> NORM_TURN_TIME;
+vector<float> NORM_TURN_TIME;
 
 //----------------------------------Getter and Setter Functions----------------------------------
 Process getProcess(int idx){
@@ -43,8 +43,16 @@ void updateTimeline(string newTimeline, int idx){
     TIMELINE[idx] = newTimeline;
 }
 
+int getTurnaroundTime(int idx){
+    return TURNAROUND_TIME[idx];
+}
+
 void setTurnaroundTime(int idx, int arrival_time, int finish_time){
     TURNAROUND_TIME[idx] =  finish_time - arrival_time;
+}
+
+float getNormalizedTurnaroundTime(int idx){
+    return NORM_TURN_TIME[idx];
 }
 
 void setNormalizedTurnaroundTime(int idx, int service_time){
@@ -76,6 +84,22 @@ int getDigitCount(int num){
         digits++;
     }while(num>0);
     return digits;
+}
+
+float meanTurnaroundTime(){
+    float mean = 0;
+    for(int i = 0; i<getCount(); i++){
+        mean += getTurnaroundTime(i);
+    }
+    return mean/(float)getCount();
+}
+
+float meanNormalizedTurnaroundTime(){
+    float mean = 0;
+    for(int i = 0; i<getCount(); i++){
+        mean += getNormalizedTurnaroundTime(i);
+    }
+    return mean/(float)getCount();
 }
 
 void printStatsFormat(int value){
@@ -190,7 +214,36 @@ void printServiceTime(){
         int service = getProcess(i).service_time;
         printStatsFormat(service);
     }
-    cout<<"|"<<endl;
+    cout<<"| Mean|"<<endl;
+}
+
+void printFinishTime(){
+    cout<<"Finish     ";
+    for(int i = 0; i<getCount(); i++){
+        int finish = getFinishTime(i);
+        printStatsFormat(finish);
+    }
+    cout<<"|-----|"<<endl;
+}
+
+void printTurnaroundTime(){
+    cout<<"Turnaround ";
+    for(int i = 0; i<getCount(); i++){
+        int turnaround = getTurnaroundTime(i);
+        printStatsFormat(turnaround);
+    }
+    float mean = meanTurnaroundTime();
+    printf("| %.2f|\n", mean);
+}
+
+void printNormalizedTurnaroundTime(){
+    cout<<"NormTurn   ";
+    for(int i = 0; i<getCount(); i++){
+        float normTurn = getNormalizedTurnaroundTime(i);
+        printf("| %.2f", normTurn);
+    }
+    float mean = meanNormalizedTurnaroundTime();
+    printf("| %.2f|\n", mean);
 }
 
 void printStats(){
@@ -199,9 +252,9 @@ void printStats(){
     printProcesses();
     printArrivalTime();
     printServiceTime();
-    // printFinishTime();
-    // printTurnaroundTime();
-    // printNormTurnTime();
+    printFinishTime();
+    printTurnaroundTime();
+    printNormalizedTurnaroundTime();
 }
 
 void printArr(vector<int>& arr){
