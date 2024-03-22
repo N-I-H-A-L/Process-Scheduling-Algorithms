@@ -9,35 +9,26 @@ class Process{
         int service_time;
 };
 
-/**Global Variables*/
-const string ALGORITHMS[1] = {"FCFS"};
+//----------------------------------Global Variables----------------------------------
+const string ALGORITHMS[2] = {"FCFS", "SJF-"};
 int ALGORITHM;
 vector<Process> PROCESSES;
 vector<string> TIMELINE;
 vector<int> FINISH_TIME;
-vector<int> TURNAROUND_TIME;
+vector<float> TURNAROUND_TIME;
 vector<int> NORM_TURN_TIME;
 
-void printProcesses(){
-    for(int i = 0; i<PROCESSES.size(); i++){
-        Process process = PROCESSES[i];
-        cout<<process.name<<" "<<process.arrival_time<<" "<<process.service_time<<endl;
-    }
-}
-
-void printArr(vector<int>& arr){
-    for(int i = 0; i<arr.size(); i++){
-        cout<<arr[i]<<" ";
-    }
-    cout<<endl;
-}
-
+//----------------------------------Getter and Setter Functions----------------------------------
 Process getProcess(int idx){
     return PROCESSES[idx];
 }
 
 int getFinishTime(int idx){
     return FINISH_TIME[idx];
+}
+
+void setFinishTime(int idx, int time){
+    FINISH_TIME[idx] = time;
 }
 
 int getCount(){
@@ -52,10 +43,19 @@ void updateTimeline(string newTimeline, int idx){
     TIMELINE[idx] = newTimeline;
 }
 
-bool sortByArrivalTime(const Process& a, const Process& b){
-    return a.arrival_time < b.arrival_time;
+void setTurnaroundTime(int idx, int arrival_time, int finish_time){
+    TURNAROUND_TIME[idx] =  finish_time - arrival_time;
 }
 
+void setNormalizedTurnaroundTime(int idx, int service_time){
+    NORM_TURN_TIME[idx] = (float)TURNAROUND_TIME[idx]/(float)service_time;
+}
+
+string getAlgorithm(){
+    return ALGORITHMS[ALGORITHM];
+}
+
+//----------------------------------Utility Functions----------------------------------
 void fillWatitingTime(){
     for(int i = 0; i<getCount(); i++){
         Process process = getProcess(i);
@@ -67,6 +67,48 @@ void fillWatitingTime(){
         }
         updateTimeline(timeline, i);
     }
+}
+
+int getDigitCount(int num){
+    int digits = 0;
+    do{
+        num /= 10;
+        digits++;
+    }while(num>0);
+    return digits;
+}
+
+void printStatsFormat(int value){
+    int digits = getDigitCount(value);
+    int leftSpaces, rightSpaces;
+    int remainingSpaces = 5-digits;
+    if(remainingSpaces%2==0) leftSpaces = rightSpaces = remainingSpaces/2;
+    else{
+        leftSpaces = remainingSpaces/2;
+        rightSpaces = remainingSpaces - leftSpaces;
+    }
+    cout<<"|";
+    for(int i = 0; i<leftSpaces; i++){
+        cout<<" ";
+    }
+    cout<<value;
+    for(int i = 0; i<rightSpaces; i++){
+        cout<<" ";
+    }
+}
+
+//----------------------------------Sorting Functions----------------------------------
+bool sortByArrivalTime(const Process& a, const Process& b){
+    return a.arrival_time < b.arrival_time;
+}
+
+bool sortByServiceTime(const Process& a, const Process& b){
+    return a.service_time < b.service_time;
+}
+
+//----------------------------------Algorithms----------------------------------
+void shortestJobNext(){
+
 }
 
 void firstComeFirstServe(){
@@ -95,11 +137,14 @@ void firstComeFirstServe(){
             }
         }
         time += curr.service_time;
-        FINISH_TIME[i] = time;
+        setFinishTime(i, time);
+        setTurnaroundTime(i, curr.arrival_time, time);
+        setNormalizedTurnaroundTime(i, curr.service_time);
     }
     fillWatitingTime();
 }
 
+//----------------------------------Print Functions----------------------------------
 void printTimeline(){
     cout<<ALGORITHMS[ALGORITHM]<<"\t";
     
@@ -122,8 +167,56 @@ void printTimeline(){
     cout<<endl;
 }
 
-void printStats(){
+void printProcesses(){
+    cout<<"Process    ";
+    for(int i = 0; i<getCount(); i++){
+        cout<<"|  "<<getProcess(i).name<<"  ";
+    }
+    cout<<"|"<<endl;
+}
 
+void printArrivalTime(){
+    cout<<"Arrival    ";
+    for(int i = 0; i<getCount(); i++){
+        int arrival = getProcess(i).arrival_time;
+        printStatsFormat(arrival);
+    }
+    cout<<"|"<<endl;
+}
+
+void printServiceTime(){
+    cout<<"Service    ";
+    for(int i = 0; i<getCount(); i++){
+        int service = getProcess(i).service_time;
+        printStatsFormat(service);
+    }
+    cout<<"|"<<endl;
+}
+
+void printStats(){
+    string algorithm = getAlgorithm();
+    cout<<algorithm<<endl;
+    printProcesses();
+    printArrivalTime();
+    printServiceTime();
+    // printFinishTime();
+    // printTurnaroundTime();
+    // printNormTurnTime();
+}
+
+void printArr(vector<int>& arr){
+    for(int i = 0; i<arr.size(); i++){
+        cout<<arr[i]<<" ";
+    }
+    cout<<endl;
+}
+
+//----------------------------------Input Handlers----------------------------------
+
+void algorithmHandler(int algorithm_idx, int operation){
+    ALGORITHM = algorithm_idx;
+    if(operation==1) printTimeline();
+    else printStats();
 }
 
 void inputProcesses(){
@@ -163,14 +256,18 @@ int main(){
     inputProcesses();
     cout<<"Choose an algorithm: "<<endl;
     cout<<"1. FCFS"<<endl;
+    cout<<"2. Shortest Job Next"<<endl;
     cin>>algorithm;
 
     switch(algorithm){
         case 1:
             firstComeFirstServe();
-            ALGORITHM = 0;
-            if(operation==1) printTimeline();
-            else printStats();
+            algorithmHandler(0, operation);
+            break;
+        case 2:
+            shortestJobNext();
+            algorithmHandler(1, operation);
+            break;
     }
 
     return 0;
