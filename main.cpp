@@ -2,6 +2,7 @@
 
 using namespace std;
 
+////----------------------------------Process Class----------------------------------
 class Process{
     public: 
         char name;
@@ -10,8 +11,8 @@ class Process{
 };
 
 //----------------------------------Global Variables----------------------------------
-const string ALGORITHMS[2] = {"FCFS", "SJF-"};
-int ALGORITHM;
+const string ALGORITHMS[2] = {"FCFS", "SJN-"};
+int ALGORITHM = 0;
 vector<Process> PROCESSES;
 vector<string> TIMELINE;
 vector<int> FINISH_TIME;
@@ -65,12 +66,14 @@ string getAlgorithm(){
 
 //----------------------------------Utility Functions----------------------------------
 void fillWatitingTime(){
+    //Fill waiting time for each process
     for(int i = 0; i<getCount(); i++){
         Process process = getProcess(i);
         int arrival = process.arrival_time;
         int finish = getFinishTime(i);
         string timeline = getTimeline(i);
-        for(int j = arrival+1; j<finish; j++){
+        //If the process wasn't getting executed (but it has arrived) from arrival to finish time it means it's in waiting state.
+        for(int j = arrival+1; j<=finish; j++){
             if(timeline[j*2-1]==' ') timeline[j*2-1] = '.';
         }
         updateTimeline(timeline, i);
@@ -102,6 +105,13 @@ float meanNormalizedTurnaroundTime(){
     return mean/(float)getCount();
 }
 
+void printArr(vector<int>& arr){
+    for(int i = 0; i<arr.size(); i++){
+        cout<<arr[i]<<" ";
+    }
+    cout<<endl;
+}
+
 void printStatsFormat(int value){
     int digits = getDigitCount(value);
     int leftSpaces, rightSpaces;
@@ -126,13 +136,51 @@ bool sortByArrivalTime(const Process& a, const Process& b){
     return a.arrival_time < b.arrival_time;
 }
 
-bool sortByServiceTime(const Process& a, const Process& b){
-    return a.service_time < b.service_time;
-}
+class SortByServiceTime{
+    public:
+        bool operator()(pair<Process, int> p1, pair<Process, int> p2){
+            if(p1.first.service_time != p2.first.service_time) return p1.first.service_time > p2.first.service_time;
+            else return p1.first.arrival_time > p2.first.arrival_time;
+        }
+};
 
 //----------------------------------Algorithms----------------------------------
 void shortestJobNext(){
+    int time = 0, executed = 0;
+    vector<bool> inserted(getCount());
+    priority_queue<pair<Process, int>, vector<pair<Process, int>>, SortByServiceTime> pq; 
+    while(executed<getCount()){
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            if(curr.arrival_time<=time && !inserted[i]){
+                pq.push({curr, i});
+                inserted[i] = true;
+            }
+        }
 
+        if(pq.empty()){
+            time++;
+            continue;
+        }
+
+        Process process = pq.top().first;
+        int process_idx = pq.top().second;
+        pq.pop();
+
+        for(int j = 0; j<getCount(); j++){
+            for(int k = time; k<time+process.service_time; k++){
+                if(process_idx==j) TIMELINE[j] += "|*";
+                else TIMELINE[j] += "| ";
+            }
+        }
+        time += process.service_time;
+        setFinishTime(process_idx, time);
+        setTurnaroundTime(process_idx, process.arrival_time, time);
+        setNormalizedTurnaroundTime(process_idx, process.service_time);
+        executed++;
+    }
+
+    fillWatitingTime();
 }
 
 void firstComeFirstServe(){
@@ -141,10 +189,13 @@ void firstComeFirstServe(){
     int time = -1;
     for(int i = 0; i<getCount(); i++){
         Process curr = getProcess(i);
+        //Set time as the arrival time of the 0th process instead of starting from 0.
         if(time==-1){
             time = curr.arrival_time;
         }
+
         int arrival = curr.arrival_time;
+        //If arrival of process is greater than time, it means there are no processes to execute for now, so make the Timeline empty till time equals arrival time.
         if(arrival>time){
             for(int j = 0; j<getCount(); j++){
                 for(int k = time; k<arrival; k++){
@@ -154,12 +205,15 @@ void firstComeFirstServe(){
             time = arrival;
         }
         
+        //Print "*" for the process getting executed and " " for all the other processes.
         for(int j = 0; j<getCount(); j++){
             for(int k = time; k<time+curr.service_time; k++){
                 if(i==j) TIMELINE[j] += "|*";
                 else TIMELINE[j] += "| ";
             }
         }
+
+        //Time passed will be equal to service_time of executed process.
         time += curr.service_time;
         setFinishTime(i, time);
         setTurnaroundTime(i, curr.arrival_time, time);
@@ -255,13 +309,6 @@ void printStats(){
     printFinishTime();
     printTurnaroundTime();
     printNormalizedTurnaroundTime();
-}
-
-void printArr(vector<int>& arr){
-    for(int i = 0; i<arr.size(); i++){
-        cout<<arr[i]<<" ";
-    }
-    cout<<endl;
 }
 
 //----------------------------------Input Handlers----------------------------------
