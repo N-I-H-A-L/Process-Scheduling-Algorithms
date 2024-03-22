@@ -139,7 +139,9 @@ bool sortByArrivalTime(const Process& a, const Process& b){
 class SortByServiceTime{
     public:
         bool operator()(pair<Process, int> p1, pair<Process, int> p2){
+            //If service time is different, sort on the basis of lesser service time.
             if(p1.first.service_time != p2.first.service_time) return p1.first.service_time > p2.first.service_time;
+            //Else sort on the basis of lesser arrival time to reduce waiting time.
             else return p1.first.arrival_time > p2.first.arrival_time;
         }
 };
@@ -152,17 +154,20 @@ void shortestJobNext(){
     while(executed<getCount()){
         for(int i = 0; i<getCount(); i++){
             Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in pq, insert it.
             if(curr.arrival_time<=time && !inserted[i]){
                 pq.push({curr, i});
                 inserted[i] = true;
             }
         }
 
+        //If pq is empty implies no process has arrived yet, increment time.
         if(pq.empty()){
             time++;
             continue;
         }
 
+        //Execution
         Process process = pq.top().first;
         int process_idx = pq.top().second;
         pq.pop();
@@ -173,6 +178,8 @@ void shortestJobNext(){
                 else TIMELINE[j] += "| ";
             }
         }
+
+        //After execution service_time amount of time will be passed.
         time += process.service_time;
         setFinishTime(process_idx, time);
         setTurnaroundTime(process_idx, process.arrival_time, time);
