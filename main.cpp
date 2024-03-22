@@ -164,6 +164,9 @@ void shortestJobNext(){
         //If pq is empty implies no process has arrived yet, increment time.
         if(pq.empty()){
             time++;
+            for(int j = 0; j<getCount(); j++){
+                TIMELINE[j] += "| ";
+            }
             continue;
         }
 
@@ -193,15 +196,11 @@ void shortestJobNext(){
 void firstComeFirstServe(){
     // Sorting the processes on the basis of Arrival Time so that processes arriving earlier should be processed earlier.
     sort(PROCESSES.begin(), PROCESSES.end(), sortByArrivalTime);
-    int time = -1;
+    int time = 0;
     for(int i = 0; i<getCount(); i++){
         Process curr = getProcess(i);
-        //Set time as the arrival time of the 0th process instead of starting from 0.
-        if(time==-1){
-            time = curr.arrival_time;
-        }
-
         int arrival = curr.arrival_time;
+
         //If arrival of process is greater than time, it means there are no processes to execute for now, so make the Timeline empty till time equals arrival time.
         if(arrival>time){
             for(int j = 0; j<getCount(); j++){
