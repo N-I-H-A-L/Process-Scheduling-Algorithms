@@ -11,7 +11,7 @@ class Process{
 };
 
 //----------------------------------Global Variables----------------------------------
-const string ALGORITHMS[5] = {"FCFS", "SJN-", "SRTN"};
+const string ALGORITHMS[5] = {"FCFS", "SJN-", "SRTN", "HRRN"};
 int ALGORITHM = 0;
 vector<Process> PROCESSES;
 vector<string> TIMELINE;
@@ -131,7 +131,7 @@ void printStatsFormat(int value){
     }
 }
 
-//----------------------------------Sorting Functions----------------------------------
+//----------------------------------Comparators----------------------------------
 bool sortByArrivalTime(const Process& a, const Process& b){
     return a.arrival_time < b.arrival_time;
 }
@@ -154,7 +154,71 @@ class SortByServiceTimeSRTN{
         }
 };
 
+class SortByResponseRatio{
+    public:
+        bool operator()(tuple<Process, int, int> t1, tuple<Process, int, int> t2){
+            float response_ratio_t1 = (float)(get<2>(t1) + get<0>(t1).service_time)/(float)get<0>(t1).service_time;
+            float response_ratio_t2 = (float)(get<2>(t2) + get<0>(t2).service_time)/(float)get<0>(t2).service_time;
+            return response_ratio_t1 < response_ratio_t2;
+        }
+};
+
 //----------------------------------Algorithms----------------------------------
+void highestResponseRatioNext(){
+    int time = 0, executed = 0;
+    vector<bool> inserted(getCount());
+    priority_queue<tuple<Process, int, int>, vector<tuple<Process, int, int>>, SortByResponseRatio> pq;
+    while(executed<getCount()){
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in pq, insert it.
+            if(curr.arrival_time<=time && !inserted[i]){
+                pq.push(make_tuple(curr, i, time-curr.arrival_time));
+                inserted[i] = true;
+            }
+        }
+
+        if(pq.empty()){
+            time++;
+            for(int j = 0; j<getCount(); j++){
+                TIMELINE[j] += "| ";
+            }
+            continue;
+        }
+
+        Process process = get<0>(pq.top());
+        int process_idx = get<1>(pq.top());
+        int waiting_time = get<2>(pq.top());
+        pq.pop();
+
+        for(int i = 0; i<getCount(); i++){
+            for(int k = time; k<time+process.service_time; k++){
+                if(i==process_idx) TIMELINE[i] += "|*";
+                else TIMELINE[i] += "| ";
+            }
+        }
+
+        time += process.service_time;
+        //Add waiting time for processes
+        setFinishTime(process_idx, time);
+        setTurnaroundTime(process_idx, process.arrival_time, time);
+        setNormalizedTurnaroundTime(process_idx, process.service_time);
+        executed++;
+
+        //Increase the waiting time for all the processes in the queue. 
+        vector<tuple<Process, int, int>> temp;
+        while(!pq.empty()){
+            auto curr = pq.top();
+            pq.pop();
+            get<2>(curr) = get<2>(curr) + process.service_time;
+            temp.push_back(curr);
+        }
+        for(int i = 0; i<temp.size(); i++) pq.push(temp[i]);
+    }
+
+    fillWatitingTime();
+}
+
 void shortestRemainingTimeNext(){
     int time = 0, executed = 0;
     vector<bool> inserted(getCount());
@@ -421,6 +485,7 @@ int main(){
     cout<<"1. FCFS"<<endl;
     cout<<"2. Shortest Job Next"<<endl;
     cout<<"3. Shortest Remaining Time Next"<<endl;
+    cout<<"4. Highest Response Ratio Next"<<endl;
     cin>>algorithm;
 
     switch(algorithm){
@@ -436,6 +501,9 @@ int main(){
             shortestRemainingTimeNext();
             algorithmHandler(3, operation);
             break;
+        case 4:
+            highestResponseRatioNext();
+            algorithmHandler(4, operation);
     }
 
     return 0;
