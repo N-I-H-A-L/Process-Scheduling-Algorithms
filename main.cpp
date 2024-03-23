@@ -141,7 +141,7 @@ void printStatsFormat(int value){
 }
 
 //----------------------------------Comparators----------------------------------
-bool sortByArrivalTime(const Process& a, const Process& b){
+bool SortByArrivalTime(const Process& a, const Process& b){
     return a.arrival_time < b.arrival_time;
 }
 
@@ -172,9 +172,89 @@ class SortByResponseRatio{
         }
 };
 
+bool SortByPriorityLevel(const tuple<int, int, int>& t1, const tuple<int, int, int>& t2){
+    return get<0>(t1) > get<0>(t2);
+}
+
 //----------------------------------Algorithms----------------------------------
 void aging(int Quantum){
+    int time = 0, executed = 0;
+    vector<tuple<int, int, int>> v;
+    vector<bool> inserted(getCount());
+    while(executed<getCount()){
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in q, insert it.
+            if(curr.arrival_time<=time && !inserted[i]){
+                int priority = getPriorityLevel(i);
+                v.push_back(make_tuple(priority, i, curr.service_time));
+                inserted[i] = true;
+            }
+        }
 
+        if(v.empty()){
+            time++;
+            for(int j = 0; j<getCount(); j++){
+                TIMELINE[j] += "| ";
+            }
+            continue;
+        }
+
+        sort(v.begin(), v.end(), SortByPriorityLevel);
+        int priority = get<0>(v[0]);
+        int process_idx = get<1>(v[0]);
+        int burst_time = get<2>(v[0]);
+        cout<<getProcess(process_idx).name<<" "<<priority<<" "<<burst_time<<endl;
+        v.erase(v.begin());
+
+        //If process didn't got executed in the current time quantum
+        if(burst_time>Quantum){
+            for(int i = 0; i<getCount(); i++){
+                for(int k = time; k<time+Quantum; k++){
+                    if(i==process_idx) TIMELINE[i] += "|*";
+                    else TIMELINE[i] += "| ";
+                }
+            }
+            time += Quantum;
+        }
+        //If process got executed
+        else{
+            for(int i = 0; i<getCount(); i++){
+                for(int k = time; k<time+burst_time; k++){
+                    if(i==process_idx) TIMELINE[i] += "|*";
+                    else TIMELINE[i] += "| ";
+                }
+            }
+            Process process = getProcess(process_idx);
+            time += burst_time;
+            setFinishTime(process_idx, time);
+            setTurnaroundTime(process_idx, process.arrival_time, time);
+            setNormalizedTurnaroundTime(process_idx, process.service_time);
+            executed++;
+        }
+        
+        //Since time passed, processes maybe available for execution so add them.
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in q, insert it.
+            if(curr.arrival_time<=time && !inserted[i]){
+                int priority = getPriorityLevel(i);
+                //Increase priority for processes which were waiting in ready queue 
+                if(curr.arrival_time!=time) priority += 1;
+                v.push_back(make_tuple(priority, i, curr.service_time));
+                inserted[i] = true;
+            }
+        }
+
+        //Push the current process if burst_time was more than Quantum that is, it didn't got executed. 
+        if(burst_time>Quantum){
+            int priority = getPriorityLevel(process_idx);
+            v.push_back(make_tuple(priority, process_idx, burst_time-Quantum));
+        }
+        sort(v.begin(), v.end(), SortByPriorityLevel);
+    }
+
+    fillWatitingTime();
 }
 
 void roundRobinVaryingQuantum(int Quantum){
@@ -398,7 +478,7 @@ void shortestJobNext(){
 
 void firstComeFirstServe(){
     // Sorting the processes on the basis of Arrival Time so that processes arriving earlier should be processed earlier.
-    sort(PROCESSES.begin(), PROCESSES.end(), sortByArrivalTime);
+    sort(PROCESSES.begin(), PROCESSES.end(), SortByArrivalTime);
     int time = 0;
     for(int i = 0; i<getCount(); i++){
         Process curr = getProcess(i);
@@ -556,7 +636,7 @@ void inputProcesses(){
 }
 
 int main(){
-    int operation, algorithm;
+    int operation, algorithm, quantum;
     
     cout<<"Enter operation to perform: "<<endl;
     cout<<"1. Trace Algorithm"<<endl;
@@ -591,7 +671,6 @@ int main(){
             algorithmHandler(4, operation);
             break;
         case 5:
-            int quantum;
             cout<<"Enter Time Quantum: ";
             cin>>quantum;
             if(quantum<=0) break;
@@ -599,9 +678,9 @@ int main(){
             algorithmHandler(5, operation);
             break;
         case 6:
-            cout<<"Enter priority of processes in order of input: ";
+            cout<<"(Higher value => Higher priority) Priority of processes in order of input: ";
             for(int i = 0; i<getCount(); i++) cin>>PRIORITY[i];
-            int quantum;
+            cout<<"Enter Time Quantum: ";
             cin>>quantum;
             aging(quantum);
             algorithmHandler(6, operation);
