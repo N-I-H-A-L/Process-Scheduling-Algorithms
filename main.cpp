@@ -11,13 +11,14 @@ class Process{
 };
 
 //----------------------------------Global Variables----------------------------------
-const string ALGORITHMS[5] = {"FCFS", "SJN-", "SRTN", "HRRN", "RRvQ"};
+const string ALGORITHMS[8] = {"FCFS", "SJN-", "SRTN", "HRRN", "RRvQ", "AGNG"};
 int ALGORITHM = 0;
 vector<Process> PROCESSES;
 vector<string> TIMELINE;
 vector<int> FINISH_TIME;
 vector<float> TURNAROUND_TIME;
 vector<float> NORM_TURN_TIME;
+vector<int> PRIORITY;
 
 //----------------------------------Getter and Setter Functions----------------------------------
 Process getProcess(int idx){
@@ -62,6 +63,14 @@ void setNormalizedTurnaroundTime(int idx, int service_time){
 
 string getAlgorithm(){
     return ALGORITHMS[ALGORITHM];
+}
+
+int getPriorityLevel(int process_idx){
+    return PRIORITY[process_idx];
+}
+
+void setPriorityLevel(int process_idx, int priority){
+    PRIORITY[process_idx] = priority;
 }
 
 //----------------------------------Utility Functions----------------------------------
@@ -164,8 +173,11 @@ class SortByResponseRatio{
 };
 
 //----------------------------------Algorithms----------------------------------
+void aging(int Quantum){
+
+}
+
 void roundRobinVaryingQuantum(int Quantum){
-    cout<<Quantum<<endl;
     int time = 0, executed = 0;
     queue<pair<int, int>> q;
     vector<bool> inserted(getCount());
@@ -540,6 +552,7 @@ void inputProcesses(){
     FINISH_TIME.resize(getCount());
     TURNAROUND_TIME.resize(getCount());
     NORM_TURN_TIME.resize(getCount());
+    PRIORITY.resize(getCount());
 }
 
 int main(){
@@ -557,6 +570,7 @@ int main(){
     cout<<"3. Shortest Remaining Time Next"<<endl;
     cout<<"4. Highest Response Ratio Next"<<endl;
     cout<<"5. Round Robin with varying Quantum"<<endl;
+    cout<<"6. Aging"<<endl;
     cin>>algorithm;
 
     switch(algorithm){
@@ -583,6 +597,14 @@ int main(){
             if(quantum<=0) break;
             roundRobinVaryingQuantum(quantum);
             algorithmHandler(5, operation);
+            break;
+        case 6:
+            cout<<"Enter priority of processes in order of input: ";
+            for(int i = 0; i<getCount(); i++) cin>>PRIORITY[i];
+            int quantum;
+            cin>>quantum;
+            aging(quantum);
+            algorithmHandler(6, operation);
             break;
         default:
             break;
