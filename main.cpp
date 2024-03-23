@@ -11,7 +11,7 @@ class Process{
 };
 
 //----------------------------------Global Variables----------------------------------
-const string ALGORITHMS[5] = {"FCFS", "SJN-", "SRTN", "HRRN"};
+const string ALGORITHMS[5] = {"FCFS", "SJN-", "SRTN", "HRRN", "RRvQ"};
 int ALGORITHM = 0;
 vector<Process> PROCESSES;
 vector<string> TIMELINE;
@@ -164,6 +164,76 @@ class SortByResponseRatio{
 };
 
 //----------------------------------Algorithms----------------------------------
+void roundRobinVaryingQuantum(int Quantum){
+    cout<<Quantum<<endl;
+    int time = 0, executed = 0;
+    queue<pair<int, int>> q;
+    vector<bool> inserted(getCount());
+    while(executed<getCount()){
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in q, insert it.
+            if(curr.arrival_time<=time && !inserted[i]){
+                q.push({i, curr.service_time});
+                inserted[i] = true;
+            }
+        }
+
+        if(q.empty()){
+            time++;
+            for(int j = 0; j<getCount(); j++){
+                TIMELINE[j] += "| ";
+            }
+            continue;
+        }
+
+        int process_idx = q.front().first;
+        int burst_time = q.front().second;
+        q.pop();
+
+        //If process didn't got executed in the current time quantum
+        if(burst_time>Quantum){
+            for(int i = 0; i<getCount(); i++){
+                for(int k = time; k<time+Quantum; k++){
+                    if(i==process_idx) TIMELINE[i] += "|*";
+                    else TIMELINE[i] += "| ";
+                }
+            }
+            time += Quantum;
+        }
+        //If process got executed
+        else{
+            for(int i = 0; i<getCount(); i++){
+                for(int k = time; k<time+burst_time; k++){
+                    if(i==process_idx) TIMELINE[i] += "|*";
+                    else TIMELINE[i] += "| ";
+                }
+            }
+            Process process = getProcess(process_idx);
+            time += burst_time;
+            setFinishTime(process_idx, time);
+            setTurnaroundTime(process_idx, process.arrival_time, time);
+            setNormalizedTurnaroundTime(process_idx, process.service_time);
+            executed++;
+        }
+        
+        //Since time passed, processes maybe available for execution so add them.
+        for(int i = 0; i<getCount(); i++){
+            Process curr = getProcess(i);
+            //If current process' arrival time is less than or equal to time and not already inserted in q, insert it.
+            if(curr.arrival_time<=time && !inserted[i]){
+                q.push({i, curr.service_time});
+                inserted[i] = true;
+            }
+        }
+
+        //Push the current process if burst_time was more than Quantum that is, it didn't got executed. 
+        if(burst_time>Quantum) q.push({process_idx, burst_time-Quantum});
+    }
+
+    fillWatitingTime();
+}
+
 void highestResponseRatioNext(){
     int time = 0, executed = 0;
     vector<bool> inserted(getCount());
@@ -486,6 +556,7 @@ int main(){
     cout<<"2. Shortest Job Next"<<endl;
     cout<<"3. Shortest Remaining Time Next"<<endl;
     cout<<"4. Highest Response Ratio Next"<<endl;
+    cout<<"5. Round Robin with varying Quantum"<<endl;
     cin>>algorithm;
 
     switch(algorithm){
@@ -504,6 +575,17 @@ int main(){
         case 4:
             highestResponseRatioNext();
             algorithmHandler(4, operation);
+            break;
+        case 5:
+            int quantum;
+            cout<<"Enter Time Quantum: ";
+            cin>>quantum;
+            if(quantum<=0) break;
+            roundRobinVaryingQuantum(quantum);
+            algorithmHandler(5, operation);
+            break;
+        default:
+            break;
     }
 
     return 0;
