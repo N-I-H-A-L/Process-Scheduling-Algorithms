@@ -231,6 +231,11 @@ void aging(int Quantum){
             setNormalizedTurnaroundTime(process_idx, process.service_time);
             executed++;
         }
+
+        //Increase priority of all the processes waiting
+        for(int i = 0; i<v.size(); i++){
+            if(i!=process_idx) get<0>(v[i])++;
+        }
         
         //Since time passed, processes maybe available for execution so add them.
         for(int i = 0; i<getCount(); i++){
@@ -360,7 +365,7 @@ void highestResponseRatioNext(){
         }
 
         time += process.service_time;
-        //Add waiting time for processes
+
         setFinishTime(process_idx, time);
         setTurnaroundTime(process_idx, process.arrival_time, time);
         setNormalizedTurnaroundTime(process_idx, process.service_time);
