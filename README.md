@@ -1,5 +1,5 @@
 # Process Scheduling Algorithms
-An implementation of various CPU scheduling algorithms in C++. The algorithms included are First Come First Serve (FCFS), Round Robin (RR), Shortest Job Next (SJN), Shortest Remaining Time (SRT), Highest Response Ratio Next (HRRN), and Aging.
+An implementation of various process scheduling algorithms in C++. The algorithms included are First Come First Serve (FCFS), Round Robin (RR), Shortest Job Next (SJN), Shortest Remaining Time (SRT), Highest Response Ratio Next (HRRN), and Aging.
 
 ## Table of Contents
 - [Process Scheduling Algorithms](#process-scheduling-algorithms)
@@ -69,5 +69,3 @@ the following steps.
     - The priority of the current process is set to the initial priority assigned to it.
     - The priorities of all the ready processes (not the current process) are incremented by 1.
     - The scheduler choses the highest priority process from among all the eligible processes.
-
-- Note that during each call to the scheduler, the complete ready list has to be traversed.
