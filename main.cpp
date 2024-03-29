@@ -204,7 +204,6 @@ void aging(int Quantum){
         int priority = get<0>(v[0]);
         int process_idx = get<1>(v[0]);
         int burst_time = get<2>(v[0]);
-        cout<<getProcess(process_idx).name<<" "<<priority<<" "<<burst_time<<endl;
         v.erase(v.begin());
 
         //If process didn't got executed in the current time quantum
