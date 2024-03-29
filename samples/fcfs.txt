@@ -1,0 +1,62 @@
+~~~~~~~~~~~~~~~~~~~~~~~Trace Algorithm~~~~~~~~~~~~~~~~~~~~~~~
+
+Enter operation to perform: 
+1. Trace Algorithm
+2. Get Stats
+1
+Provide details about processes.
+Format: Process_Name Arrival_Time Service_Time
+Press 0 to exit.
+A 0 3
+B 1 4
+C 2 5
+D 3 6
+E 7 8
+0
+Choose an algorithm:
+1. FCFS
+2. Shortest Job Next
+3. Shortest Remaining Time Next
+4. Highest Response Ratio Next
+5. Round Robin with varying Quantum
+6. Aging
+1
+FCFS    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6
+-------------------------------------------------------------
+A       |*|*|*| | | | | | | | | | | | | | | | | | | | | | | |
+B       | |.|.|*|*|*|*| | | | | | | | | | | | | | | | | | | |
+C       | | |.|.|.|.|.|*|*|*|*|*| | | | | | | | | | | | | | |
+D       | | | |.|.|.|.|.|.|.|.|.|*|*|*|*|*|*| | | | | | | | |
+E       | | | | | | | |.|.|.|.|.|.|.|.|.|.|.|*|*|*|*|*|*|*|*|
+-------------------------------------------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~Get Stats~~~~~~~~~~~~~~~~~~~~~~~
+
+Enter operation to perform: 
+1. Trace Algorithm
+2. Get Stats
+2
+Provide details about processes.
+Format: Process_Name Arrival_Time Service_Time
+Press 0 to exit.
+A 0 3
+B 1 4
+C 2 5
+D 3 6
+E 7 8
+0
+Choose an algorithm:
+1. FCFS
+2. Shortest Job Next
+3. Shortest Remaining Time Next
+4. Highest Response Ratio Next
+5. Round Robin with varying Quantum
+6. Aging
+1
+FCFS
+Process    |  A  |  B  |  C  |  D  |  E  |
+Arrival    |  0  |  1  |  2  |  3  |  7  |
+Service    |  3  |  4  |  5  |  6  |  8  | Mean|
+Finish     |  3  |  7  | 12  | 18  | 26  |-----|
+Turnaround |  3  |  6  | 10  | 15  | 19  | 10.60|
+NormTurn   | 1.00| 1.50| 2.00| 2.50| 2.38| 1.88|

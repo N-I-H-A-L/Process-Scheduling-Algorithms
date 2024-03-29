@@ -1,0 +1,62 @@
+~~~~~~~~~~~~~~~~~~~~~~~Trace Algorithm~~~~~~~~~~~~~~~~~~~~~~~
+
+Enter operation to perform: 
+1. Trace Algorithm
+2. Get Stats
+1
+Provide details about processes.
+Format: Process_Name Arrival_Time Service_Time
+Press 0 to exit.
+A 0 1
+B 2 3
+C 1 1
+D 2 1
+E 3 2
+0
+Choose an algorithm:
+1. FCFS
+2. Shortest Job Next
+3. Shortest Remaining Time Next
+4. Highest Response Ratio Next
+5. Round Robin with varying Quantum
+6. Aging
+2
+SJN-    0 1 2 3 4 5 6 7 8
+-------------------------
+A       |*| | | | | | | |
+B       | | |.|.|.|*|*|*|
+C       | |*| | | | | | |
+D       | | |*| | | | | |
+E       | | | |*|*| | | |
+-------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~Get Stats~~~~~~~~~~~~~~~~~~~~~~~
+
+Enter operation to perform: 
+1. Trace Algorithm
+2. Get Stats
+2
+Provide details about processes.
+Format: Process_Name Arrival_Time Service_Time
+Press 0 to exit.
+A 0 1
+B 2 3
+C 1 1
+D 2 1
+E 3 2
+0
+Choose an algorithm:
+1. FCFS
+2. Shortest Job Next
+3. Shortest Remaining Time Next
+4. Highest Response Ratio Next
+5. Round Robin with varying Quantum
+6. Aging
+2
+SJN-
+Process    |  A  |  B  |  C  |  D  |  E  |
+Arrival    |  0  |  2  |  1  |  2  |  3  |
+Service    |  1  |  3  |  1  |  1  |  2  | Mean|
+Finish     |  1  |  8  |  2  |  3  |  5  |-----|
+Turnaround |  1  |  6  |  1  |  1  |  2  | 2.20|
+NormTurn   | 1.00| 2.00| 1.00| 1.00| 1.00| 1.20|
